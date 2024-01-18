@@ -1,8 +1,11 @@
-[System.Serializable]
-public class PlayerData
+namespace Leaderboard.io
 {
-    public string playerName;
-    public int placement;
-    public int score;
-    public bool isLocalPlayer;
+    [System.Serializable]
+    public class PlayerData
+    {
+        public string PlayerName { get; set; }
+        public int Placement { get; set; }
+        public int Score { get; set; }
+        public bool IsLocalPlayer { get; set; }
+    }
 }
