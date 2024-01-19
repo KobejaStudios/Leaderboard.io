@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Leaderboard.io
@@ -11,6 +12,7 @@ namespace Leaderboard.io
         private void Start()
         {
             _leaderboardService = ServiceLocator.GetService<ILeaderboardService>();
+            UpdateView();
         }
 
         public void UpdateView()

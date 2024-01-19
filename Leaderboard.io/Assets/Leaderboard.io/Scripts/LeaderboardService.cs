@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 namespace Leaderboard.io
@@ -11,8 +13,8 @@ namespace Leaderboard.io
         List<PlayerData> GetSortedList(Comparison<PlayerData> comparison);
         void DeleteLeaderboard();
         void AddUser(PlayerData user);
-        void LogLeaderboard();
         void SaveLeaderboard();
+        void LoadLeaderboard();
         void CreateLeaderboard();
         void UpdateLeaderboard();
     }
@@ -21,26 +23,10 @@ namespace Leaderboard.io
     public class LeaderboardService : ILeaderboardService
     {
         private List<PlayerData> _players = new();
+        private string SaveFilePath => Application.persistentDataPath + "/leaderboardData.dat";
         public LeaderboardService()
         {
-            var data = PlayerPrefs.GetString(PrefsKeys.LeaderboardKey);
-    
-            if (string.IsNullOrEmpty(data))
-            {
-                _players = new List<PlayerData>();
-            }
-            else
-            {
-                try
-                {
-                    _players = JsonUtility.FromJson<List<PlayerData>>(data);
-                }
-                catch (System.Exception ex)
-                {
-                    Debug.LogError($"Error deserializing JSON: {ex.Message}");
-                    _players = new List<PlayerData>();
-                }
-            }
+            LoadLeaderboard();
         }
         
         public void UpdatePlayer(PlayerData player)
@@ -55,9 +41,9 @@ namespace Leaderboard.io
 
         public List<PlayerData> GetSortedList(Comparison<PlayerData> comparison)
         {
-            var sortedList = new List<PlayerData>(_players);
+            List<PlayerData> sortedList = new List<PlayerData>(_players);
             sortedList.Sort(comparison);
-            var placement = 0;
+            int placement = 0;
             foreach (var user in sortedList)
             {
                 placement++;
@@ -78,27 +64,26 @@ namespace Leaderboard.io
             SaveLeaderboard();
         }
 
-        public void LogLeaderboard()
-        {
-            foreach (var player in _players)
-            {
-                Debug.Log($"player: {player.PlayerName}, score: {player.Score}, place: {player.Placement}, isLocal: {player.IsLocalPlayer}");
-            }
-        }
-
         public void SaveLeaderboard()
         {
-            try
+            BinaryFormatter binForm = new BinaryFormatter();
+            FileStream file = File.Create(SaveFilePath);
+            binForm.Serialize(file, _players);
+            file.Close();
+        }
+
+        public void LoadLeaderboard()
+        {
+            if (!File.Exists(SaveFilePath))
             {
-                var data = JsonUtility.ToJson(_players);
-                PlayerPrefs.SetString(PrefsKeys.LeaderboardKey, data);
-                PlayerPrefs.Save();
-                Debug.Log("Leaderboard saved successfully");
+                Debug.LogError($"There is no saved file at: {SaveFilePath}");
+                return;
             }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error saving leaderboard: {ex.Message}");
-            }
+        
+            BinaryFormatter binForm = new BinaryFormatter();
+            using FileStream file = File.Open(SaveFilePath, FileMode.Open);
+            _players = (List<PlayerData>)binForm.Deserialize(file);
+            file.Close();
         }
 
         public void CreateLeaderboard()

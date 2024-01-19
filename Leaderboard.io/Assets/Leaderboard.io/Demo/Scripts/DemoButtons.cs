@@ -26,7 +26,11 @@ namespace Leaderboard.io
 
         public void LogLeaderboard()
         {
-            _leaderboardService.LogLeaderboard();
+            foreach (var playerData in _leaderboardService.GetSortedList((x, y) => y.Score.CompareTo(x.Score)))
+            {
+                Debug.Log($"name: {playerData.PlayerName}, place: {playerData.Placement}," +
+                          $" score: {playerData.Score}, isLocal: {playerData.IsLocalPlayer}");
+            }
         }
 
         public void WipeData()
