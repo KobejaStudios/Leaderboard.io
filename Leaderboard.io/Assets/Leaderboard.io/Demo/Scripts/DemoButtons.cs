@@ -5,6 +5,7 @@ namespace Leaderboard.io
 {
     public class DemoButtons : MonoBehaviour
     {
+        [SerializeField] private GameObject _createUserPopup;
         private ILeaderboardService _leaderboardService;
 
         private void Start()
@@ -12,16 +13,21 @@ namespace Leaderboard.io
             _leaderboardService = ServiceLocator.GetService<ILeaderboardService>();
         }
 
-        public void AddRandomUser()
+        public void AddPlayer()
         {
-            var user = new PlayerData
+            _createUserPopup.SetActive(true);
+        }
+
+        public void AddRandomPlayer()
+        {
+            var player = new PlayerData
             {
                 Score = Random.Range(100,5000),
                 PlayerName = $"user{Random.Range(1,9999)}",
                 Placement = 0,
                 IsLocalPlayer = false
             };
-            _leaderboardService.AddUser(user);
+            _leaderboardService.AddPlayer(player);
         }
 
         public void LogLeaderboard()

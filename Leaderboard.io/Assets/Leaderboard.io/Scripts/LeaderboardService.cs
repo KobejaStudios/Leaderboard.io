@@ -8,11 +8,11 @@ namespace Leaderboard.io
 {
     public interface ILeaderboardService
     {
-        void UpdatePlayer(PlayerData player);
         List<PlayerData> GetLeaderboard();
+        PlayerData GetLocalPlayer();
         List<PlayerData> GetSortedList(Comparison<PlayerData> comparison);
         void DeleteLeaderboard();
-        void AddUser(PlayerData user);
+        void AddPlayer(PlayerData user);
         void SaveLeaderboard();
         void LoadLeaderboard();
         void CreateLeaderboard();
@@ -28,10 +28,10 @@ namespace Leaderboard.io
         {
             LoadLeaderboard();
         }
-        
-        public void UpdatePlayer(PlayerData player)
+
+        public PlayerData GetLocalPlayer()
         {
-            
+            return _players.Find(x => x.IsLocalPlayer);
         }
 
         public List<PlayerData> GetLeaderboard()
@@ -58,9 +58,9 @@ namespace Leaderboard.io
             SaveLeaderboard();
         }
 
-        public void AddUser(PlayerData user)
+        public void AddPlayer(PlayerData player)
         {
-            _players.Add(user);
+            _players.Add(player);
             SaveLeaderboard();
         }
 
