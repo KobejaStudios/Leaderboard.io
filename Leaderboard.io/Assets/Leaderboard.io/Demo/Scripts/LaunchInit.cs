@@ -7,7 +7,9 @@ namespace Leaderboard.io
         private void Awake()
         {
             ILeaderboardService leaderboardService = new LeaderboardService();
+            IRandomIdGenerator randomIdGenerator = new RandomIdGenerator();
             ServiceLocator.RegisterService(leaderboardService);
+            ServiceLocator.RegisterService(randomIdGenerator);
         }
     }
 }
