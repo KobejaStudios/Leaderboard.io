@@ -7,5 +7,6 @@ namespace Leaderboard.io
         public int Placement { get; set; }
         public int Score { get; set; }
         public bool IsLocalPlayer { get; set; }
+        public string Id { get; set; }
     }
 }

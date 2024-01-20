@@ -32,7 +32,7 @@ namespace Leaderboard.io
 
         public void LogLeaderboard()
         {
-            foreach (var playerData in _leaderboardService.GetSortedList((x, y) => y.Score.CompareTo(x.Score)))
+            foreach (var playerData in _leaderboardService.GetLeaderboard((x, y) => y.Score.CompareTo(x.Score)))
             {
                 Debug.Log($"name: {playerData.PlayerName}, place: {playerData.Placement}," +
                           $" score: {playerData.Score}, isLocal: {playerData.IsLocalPlayer}");

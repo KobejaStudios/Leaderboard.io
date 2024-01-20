@@ -8,15 +8,17 @@ namespace Leaderboard.io
 {
     public interface ILeaderboardService
     {
-        List<PlayerData> GetLeaderboard();
         PlayerData GetLocalPlayer();
-        List<PlayerData> GetSortedList(Comparison<PlayerData> comparison);
+        PlayerData GetPlayer(string id);
+        List<PlayerData> GetLeaderboard(Comparison<PlayerData> comparison);
+        void InitializeLocalPlayer();
+        void UpdatePlayer(string id, Action<PlayerData> updateAction);
         void DeleteLeaderboard();
         void AddPlayer(PlayerData user);
         void SaveLeaderboard();
         void LoadLeaderboard();
         void CreateLeaderboard();
-        void UpdateLeaderboard();
+        void UpdateLeaderboard(Comparison<PlayerData> comparison);
     }
     // Add this `LeaderboardService` to your service locator, inject it with DI, construct one, or use any 
     // other pattern that fits your project
@@ -34,22 +36,46 @@ namespace Leaderboard.io
             return _players.Find(x => x.IsLocalPlayer);
         }
 
-        public List<PlayerData> GetLeaderboard()
+        public PlayerData GetPlayer(string id)
         {
-            return new List<PlayerData>(_players);
+            return _players.Find(x => x.Id == id);
         }
 
-        public List<PlayerData> GetSortedList(Comparison<PlayerData> comparison)
+        public List<PlayerData> GetLeaderboard(Comparison<PlayerData> comparison)
         {
-            List<PlayerData> sortedList = new List<PlayerData>(_players);
-            sortedList.Sort(comparison);
-            int placement = 0;
-            foreach (var user in sortedList)
+            List<PlayerData> copy = new List<PlayerData>(_players);
+            copy.Sort(comparison);
+            for (int i = 0; i < copy.Count; i++)
             {
-                placement++;
-                user.Placement = placement;
+                copy[i].Placement = i + 1;
             }
-            return sortedList;
+            return copy;
+        }
+
+        public void InitializeLocalPlayer()
+        {
+            if (_players.Find(x => x.IsLocalPlayer) != null) return;
+            PlayerData localPlayer = new PlayerData
+            {
+                Placement = 0,
+                Score = 0,
+                PlayerName = SystemInfo.deviceUniqueIdentifier,
+                Id = SystemInfo.deviceUniqueIdentifier,
+                IsLocalPlayer = true
+            };
+            AddPlayer(localPlayer);
+        }
+
+        public void UpdatePlayer(string id, Action<PlayerData> updateAction)
+        {
+            PlayerData playerToUpdate = _players.Find(x => x.Id == id);
+            if (playerToUpdate != null)
+            {
+                updateAction(playerToUpdate);
+                SaveLeaderboard();
+                return;
+            }
+            Debug.LogWarning($"Player with id: ({id}) cannot be found");
         }
 
         public void DeleteLeaderboard()
@@ -67,23 +93,31 @@ namespace Leaderboard.io
         public void SaveLeaderboard()
         {
             BinaryFormatter binForm = new BinaryFormatter();
-            FileStream file = File.Create(SaveFilePath);
-            binForm.Serialize(file, _players);
-            file.Close();
+            try
+            {
+                using FileStream file = File.Create(SaveFilePath);
+                binForm.Serialize(file, _players);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error saving leaderboard data: {ex.Message}");
+                throw;
+            }
         }
-
+        
         public void LoadLeaderboard()
         {
-            if (!File.Exists(SaveFilePath))
-            {
-                Debug.LogError($"There is no saved file at: {SaveFilePath}");
-                return;
-            }
-        
             BinaryFormatter binForm = new BinaryFormatter();
-            using FileStream file = File.Open(SaveFilePath, FileMode.Open);
-            _players = (List<PlayerData>)binForm.Deserialize(file);
-            file.Close();
+            try
+            {
+                using FileStream file = File.Open(SaveFilePath, FileMode.Open);
+                _players = (List<PlayerData>)binForm.Deserialize(file);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error loading leaderboard data: {ex.Message}");
+                throw;
+            }
         }
 
         public void CreateLeaderboard()
@@ -91,9 +125,14 @@ namespace Leaderboard.io
             throw new NotImplementedException();
         }
 
-        public void UpdateLeaderboard()
+        public void UpdateLeaderboard(Comparison<PlayerData> comparison)
         {
-            throw new NotImplementedException();
+            _players.Sort(comparison);
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].Placement = i + 1;
+            }
+            SaveLeaderboard();
         }
     }
 }

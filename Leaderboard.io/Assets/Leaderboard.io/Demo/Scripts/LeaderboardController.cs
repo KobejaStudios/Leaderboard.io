@@ -20,7 +20,7 @@ namespace Leaderboard.io
             {
                 Destroy(child.gameObject);
             }
-            foreach (var user in _leaderboardService.GetSortedList((x, y) => y.Score.CompareTo(x.Score)))
+            foreach (var user in _leaderboardService.GetLeaderboard((x, y) => y.Score.CompareTo(x.Score)))
             {
                 Instantiate(_userView, _scrollContent)
                     .SetText(user.Placement, user.PlayerName, user.Score);
