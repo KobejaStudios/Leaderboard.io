@@ -72,7 +72,7 @@ namespace Leaderboard.io
             if (playerToUpdate != null)
             {
                 updateAction(playerToUpdate);
-                SaveLeaderboard();
+                UpdateLeaderboard((x, y) => y.Score.CompareTo(x.Score));
                 return;
             }
             Debug.LogWarning($"Player with id: ({id}) cannot be found");

@@ -1,16 +1,27 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LeaderboardUserView : MonoBehaviour
+namespace Leaderboard.io
 {
-    [SerializeField] private Text _placeText;
-    [SerializeField] private Text _nameText;
-    [SerializeField] private Text _scoreText;
-
-    public void SetText(int place, string userName, int score)
+    public class LeaderboardUserView : MonoBehaviour
     {
-        _placeText.text = place.ToString();
-        _nameText.text = userName;
-        _scoreText.text = score.ToString();
+        [SerializeField] private Text _placeText;
+        [SerializeField] private Text _nameText;
+        [SerializeField] private Text _scoreText; 
+        private PlayerData _playerData;
+
+        public void Setup(PlayerData playerData)
+        {
+            _playerData = playerData;
+            _placeText.text = playerData.Placement.ToString();
+            _nameText.text = playerData.PlayerName;
+            _scoreText.text = playerData.Score.ToString();
+        }
+
+        public void OnPlayerClicked()
+        {
+            PlayerPrefs.SetString(EditPlayerPopup.SelectedPlayerKey, _playerData.Id);
+            FindObjectOfType<EditPlayerPopup>().Init();
+        }
     }
 }
