@@ -7,9 +7,11 @@ using UnityEngine;
 public class Test : MonoBehaviour
 {
     private IRandomIdGenerator _randomIdGenerator;
+    private ILeaderboardService _leaderboardService;
     private void Start()
     {
         _randomIdGenerator = ServiceLocator.GetService<IRandomIdGenerator>();
+        _leaderboardService = ServiceLocator.GetService<ILeaderboardService>();
     }
 
     [ContextMenu("log ids")]
@@ -37,5 +39,11 @@ public class Test : MonoBehaviour
     private void WipeIdData()
     {
         _randomIdGenerator.WipeData();
+    }
+
+    [ContextMenu("update players")]
+    private void UpdatePlayers()
+    {
+        _leaderboardService.UpdatePlayers(8, 3, 5, 1.15f, 1.67f);
     }
 }
