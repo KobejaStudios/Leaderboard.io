@@ -22,8 +22,8 @@ namespace Leaderboard.io
         private List<string> _allIds = new();
         private List<string> _idsInUse = new();
         private char[] _chars => GenerateAlphanumericChars().ToCharArray();
-        public static string GetAllIdsKey;
-        public static string GetUsedIdsKey;
+        public static string GetAllIdsKey = "GetAllIds";
+        public static string GetUsedIdsKey = "GetUsedIds";
 
         public RandomIdGenerator()
         {
