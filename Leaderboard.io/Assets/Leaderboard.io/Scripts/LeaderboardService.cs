@@ -16,6 +16,7 @@ namespace Leaderboard.io
         List<PlayerData> GetLeaderboard(Comparison<PlayerData> comparison);
         void InitializeLocalPlayer();
         void UpdatePlayer(string id, Action<PlayerData> updateAction);
+        void UpdateLocalPlayer(int value);
         void DeleteLeaderboard();
         void AddPlayer(PlayerData user);
         void SaveLeaderboard();
@@ -116,6 +117,13 @@ namespace Leaderboard.io
             Debug.LogWarning($"Player with id: ({id}) cannot be found");
         }
 
+        public void UpdateLocalPlayer(int value)
+        {
+            PlayerData localPlayerData = GetLocalPlayer();
+            localPlayerData.Score = value;
+            SaveLeaderboard();
+        }
+
         /// <summary>
         /// Warning! This will delete all of the data from the internal players collection.
         /// Deletes the data in the internal players collection.
@@ -130,7 +138,9 @@ namespace Leaderboard.io
         /// <summary>
         /// Adds a player to the internal players collection and then saves the changes.
         /// </summary>
-        /// <param name="player"></param>
+        /// <param name="player"> Definition of PlayerData for new player </param>
+        /// <param name="isAutoSave"> Control over if the service will auto-save the changes or not. Defaulted
+        ///  to true </param>
         public void AddPlayer(PlayerData player)
         {
             _players.Add(player);
