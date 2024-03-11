@@ -31,7 +31,6 @@ namespace Leaderboard.io
 
             for (int i = 0; i < numberOfPlayers; i++)
             {
-                //TODO: fix this loop, it crashes the game? Maybe the crash in is the GetRandomName call?
                 if (!TryCreatePlayer(scoreRangeMin, scoreRangeMax)) break;
             }
         }
@@ -55,7 +54,7 @@ namespace Leaderboard.io
                     IsLocalPlayer = false,
                     Placement = 0
                 };
-                _leaderboardService.AddPlayer(player);
+                _leaderboardService.AddPlayer(player, false);
             }
             catch (Exception e)
             {

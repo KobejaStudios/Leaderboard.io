@@ -52,7 +52,7 @@ namespace Leaderboard.io
                 _namesInUse.Add(randomName);
                 _availableNames.Remove(randomName);
                 //SaveData();
-                return randomName.Replace('\r', 'a');
+                return randomName;
             }
             catch (Exception e)
             {
@@ -104,6 +104,7 @@ namespace Leaderboard.io
                     : new List<string>();
 
                 await Task.Yield();
+                //TODO: issue with loading here, on app restart _availableNames will always be 0
                 _availableNames = _allNames.Where(item => !_namesInUse.Any(x => x.Equals(item))).ToList();
                 Debug.Log($"allNamesCount: {_allNames.Count}, inUseCount: {_namesInUse.Count}, availableCount: {_availableNames.Count}");
             }

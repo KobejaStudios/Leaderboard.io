@@ -18,7 +18,7 @@ namespace Leaderboard.io
         void UpdatePlayer(string id, Action<PlayerData> updateAction);
         void UpdateLocalPlayer(int value);
         void DeleteLeaderboard();
-        void AddPlayer(PlayerData user);
+        void AddPlayer(PlayerData user, bool isAutoSave = true);
         void SaveLeaderboard();
         void LoadLeaderboard();
         void CreateLeaderboard();
@@ -141,10 +141,13 @@ namespace Leaderboard.io
         /// <param name="player"> Definition of PlayerData for new player </param>
         /// <param name="isAutoSave"> Control over if the service will auto-save the changes or not. Defaulted
         ///  to true </param>
-        public void AddPlayer(PlayerData player)
+        public void AddPlayer(PlayerData player, bool isAutoSave = true)
         {
             _players.Add(player);
-            SaveLeaderboard();
+            if (isAutoSave)
+            {
+                SaveLeaderboard();
+            }
         }
 
         /// <summary>
