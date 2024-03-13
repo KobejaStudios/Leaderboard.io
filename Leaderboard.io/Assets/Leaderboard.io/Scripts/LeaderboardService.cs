@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 using Random = System.Random;
@@ -21,7 +20,6 @@ namespace Leaderboard.io
         void AddPlayer(PlayerData user, bool isAutoSave = true);
         void SaveLeaderboard();
         void LoadLeaderboard();
-        void CreateLeaderboard();
         void UpdateLeaderboard(Comparison<PlayerData> comparison);
         void UpdatePlayers(int segment, int minPlayerRange, int maxPlayerRange, float minScoreFactor, float maxScoreFactor);
         void UpdatePlayers(int segment, int playerRange, float scoreFactor);
@@ -31,10 +29,57 @@ namespace Leaderboard.io
     {
         private List<PlayerData> _players = new();
         private string SaveFilePath => Application.persistentDataPath + "/leaderboardData.dat";
+
+        #region Init
+
         public LeaderboardService()
         {
             LoadLeaderboard();
         }
+        
+        /// <summary>
+        /// Initializes the local player by checking if it already exists in the internal player collection.
+        /// If not found, a new local player is created with default properties such as a unique identifier,
+        /// initial placement, score of 0, and marked as the local player. The local player is then added to the
+        /// internal player collection.
+        /// This can be called on app init to ensure there is always a local player defined.
+        /// </summary>
+        public void InitializeLocalPlayer()
+        {
+            if (_players.Find(x => x.IsLocalPlayer) != null) return;
+            PlayerData localPlayer = new PlayerData
+            {
+                Placement = 0,
+                Score = 0,
+                PlayerName = SystemInfo.deviceUniqueIdentifier,
+                Id = SystemInfo.deviceUniqueIdentifier,
+                IsLocalPlayer = true
+            };
+            AddPlayer(localPlayer);
+        }
+
+        #endregion
+
+        #region Create
+
+        /// <summary>
+        /// Adds a player to the internal players collection and then saves the changes.
+        /// </summary>
+        /// <param name="player"> Definition of PlayerData for new player </param>
+        /// <param name="isAutoSave"> Control over if the service will auto-save the changes or not. Defaulted
+        ///  to true </param>
+        public void AddPlayer(PlayerData player, bool isAutoSave = true)
+        {
+            _players.Add(player);
+            if (isAutoSave)
+            {
+                SaveLeaderboard();
+            }
+        }
+
+        #endregion
+
+        #region Getters
 
         /// <summary>
         /// Returns the local player found in the internal player collection.
@@ -79,26 +124,9 @@ namespace Leaderboard.io
             return copy;
         }
 
-        /// <summary>
-        /// Initializes the local player by checking if it already exists in the internal player collection.
-        /// If not found, a new local player is created with default properties such as a unique identifier,
-        /// initial placement, score of 0, and marked as the local player. The local player is then added to the
-        /// internal player collection.
-        /// This can be called on app init to ensure there is always a local player defined.
-        /// </summary>
-        public void InitializeLocalPlayer()
-        {
-            if (_players.Find(x => x.IsLocalPlayer) != null) return;
-            PlayerData localPlayer = new PlayerData
-            {
-                Placement = 0,
-                Score = 0,
-                PlayerName = SystemInfo.deviceUniqueIdentifier,
-                Id = SystemInfo.deviceUniqueIdentifier,
-                IsLocalPlayer = true
-            };
-            AddPlayer(localPlayer);
-        }
+        #endregion
+
+        #region Update
 
         /// <summary>
         /// Updates a player in the internal player collection based on the specified player ID.
@@ -123,75 +151,8 @@ namespace Leaderboard.io
             localPlayerData.Score = value;
             SaveLeaderboard();
         }
-
-        /// <summary>
-        /// Warning! This will delete all of the data from the internal players collection.
-        /// Deletes the data in the internal players collection.
-        /// Then saves the empty data to disk.
-        /// </summary>
-        public void DeleteLeaderboard()
-        {
-            _players.Clear();
-            SaveLeaderboard();
-        }
-
-        /// <summary>
-        /// Adds a player to the internal players collection and then saves the changes.
-        /// </summary>
-        /// <param name="player"> Definition of PlayerData for new player </param>
-        /// <param name="isAutoSave"> Control over if the service will auto-save the changes or not. Defaulted
-        ///  to true </param>
-        public void AddPlayer(PlayerData player, bool isAutoSave = true)
-        {
-            _players.Add(player);
-            if (isAutoSave)
-            {
-                SaveLeaderboard();
-            }
-        }
-
-        /// <summary>
-        /// Saves the current state of the leaderboard by serializing the internal player collection
-        /// and storing it in a binary file at the specified file path.
-        /// </summary>
-        public void SaveLeaderboard()
-        {
-            BinaryFormatter binForm = new BinaryFormatter();
-            try
-            {
-                using FileStream file = File.Create(SaveFilePath);
-                binForm.Serialize(file, _players);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error saving leaderboard data: {ex.Message}");
-                throw;
-            }
-        }
         
-        /// <summary>
-        /// Loads the leaderboard data by deserializing the content of a binary file
-        /// located at the specified file path. The deserialized player collection is
-        /// assigned to the internal player collection.
-        /// </summary>
-        public void LoadLeaderboard()
-        {
-            BinaryFormatter binForm = new BinaryFormatter();
-            try
-            {
-                using FileStream file = File.Open(SaveFilePath, FileMode.Open);
-                _players = (List<PlayerData>)binForm.Deserialize(file);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error loading leaderboard data: {ex.Message}");
-            }
-        }
-
-        public void CreateLeaderboard()
-        {
-            throw new NotImplementedException();
-        }
+        
 
         /// <summary>
         /// Updates the leaderboard by sorting the internal player collection based on the specified comparison,
@@ -271,6 +232,10 @@ namespace Leaderboard.io
             segmentList.Clear();
         }
 
+        #endregion
+
+        #region Helpers
+
         /// <summary>
         /// Fisher-Yates Shuffle alg gives O(n) time complexity.
         /// This alg is used to shuffle the segmented lists for random player updates.
@@ -287,5 +252,65 @@ namespace Leaderboard.io
                 (array[i], array[j]) = (array[j], array[i]);
             }
         }
+
+        #endregion
+
+        #region Save/Load
+
+        /// <summary>
+        /// Saves the current state of the leaderboard by serializing the internal player collection
+        /// and storing it in a binary file at the specified file path.
+        /// </summary>
+        public void SaveLeaderboard()
+        {
+            BinaryFormatter binForm = new BinaryFormatter();
+            try
+            {
+                using FileStream file = File.Create(SaveFilePath);
+                binForm.Serialize(file, _players);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error saving leaderboard data: {ex.Message}");
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// Loads the leaderboard data by deserializing the content of a binary file
+        /// located at the specified file path. The deserialized player collection is
+        /// assigned to the internal player collection.
+        /// </summary>
+        public void LoadLeaderboard()
+        {
+            BinaryFormatter binForm = new BinaryFormatter();
+            try
+            {
+                using FileStream file = File.Open(SaveFilePath, FileMode.Open);
+                _players = (List<PlayerData>)binForm.Deserialize(file);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error loading leaderboard data: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Destroy
+
+        /// <summary>
+        /// Warning! This will delete all of the data from the internal players collection.
+        /// Deletes the data in the internal players collection.
+        /// Then saves the empty data to disk.
+        /// </summary>
+        public void DeleteLeaderboard()
+        {
+            _players.Clear();
+            SaveLeaderboard();
+        }
+
+        #endregion
+        
     }
 }
