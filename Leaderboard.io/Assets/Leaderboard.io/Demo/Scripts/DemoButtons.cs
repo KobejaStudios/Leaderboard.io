@@ -1,5 +1,5 @@
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 namespace Leaderboard.io
 {
@@ -10,6 +10,7 @@ namespace Leaderboard.io
         private ILeaderboardService _leaderboardService;
         private IRandomIdGenerator _randomIdGeneratorService;
         private IRandomNameGenerator _randomNameGeneratorService;
+        private Random _random = new();
 
         private void Start()
         {
@@ -26,13 +27,14 @@ namespace Leaderboard.io
 
         public void AddRandomPlayer()
         {
+            var id = _random.Next(100,99999);
             var player = new PlayerData
             {
-                Score = Random.Range(100,5000),
-                PlayerName = $"player{Random.Range(1,9999)}",
+                Score = UnityEngine.Random.Range(100,5000),
+                PlayerName = $"player{id}",
                 Placement = 0,
                 IsLocalPlayer = false,
-                Id = _randomIdGeneratorService.GetRandomId()
+                Id = id.ToString()
             };
             _leaderboardService.AddPlayer(player);
         }

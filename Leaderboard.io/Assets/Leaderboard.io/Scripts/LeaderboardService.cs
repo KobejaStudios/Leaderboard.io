@@ -185,7 +185,6 @@ namespace Leaderboard.io
             catch (Exception ex)
             {
                 Debug.LogError($"Error loading leaderboard data: {ex.Message}");
-                throw;
             }
         }
 

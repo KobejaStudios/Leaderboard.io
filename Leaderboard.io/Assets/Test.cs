@@ -16,6 +16,7 @@ public class Test : MonoBehaviour
     public int month;
     public int year;
     public static string TestDate = "TestDate";
+
     private void Start()
     {
         _randomIdGenerator = ServiceLocator.GetService<IRandomIdGenerator>();
@@ -65,6 +66,12 @@ public class Test : MonoBehaviour
     private void ClearUpdateKey()
     {
         PlayerPrefs.SetString(LeaderboardUpdateController.NewUpdateDateKey, "");
+    }
+
+    [ContextMenu("Print Update Date Value")]
+    private void PrintUpdateValue()
+    {
+        Debug.Log($"{PlayerPrefs.GetString(LeaderboardUpdateController.NewUpdateDateKey)}");
     }
 
     [ContextMenu("set date")]
